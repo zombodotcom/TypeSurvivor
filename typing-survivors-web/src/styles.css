@@ -1,0 +1,90 @@
+body {
+  margin: 0;
+  background-color: #1e1e1e;
+  overflow: hidden;
+  font-family: Arial, sans-serif;
+}
+
+#game-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.enemy-container {
+  position: absolute;
+  width: 64px;
+  text-align: center;
+  pointer-events: none;
+  user-select: none;
+}
+
+.enemy-img {
+  width: 64px;
+  height: 64px;
+}
+
+.enemy-label {
+  font-size: 14px;
+  color: #ffffff;
+  text-shadow: 1px 1px 2px #000;
+}
+
+#typed-input {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 24px;
+  color: #ffff00;
+  background: rgba(0,0,0,0.6);
+  padding: 8px 16px;
+  border-radius: 8px;
+  user-select: text;
+  width: max-content;
+  max-width: 90vw;
+  white-space: nowrap;
+  overflow-x: auto;
+}
+
+#overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  color: #ffffff;
+  font-family: Arial, sans-serif;
+  z-index: 1000;
+}
+
+.overlay-content {
+  text-align: center;
+}
+
+.overlay-content button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  font-size: 18px;
+  background: #ffff00;
+  border: none;
+  cursor: pointer;
+}
+
+#player-dot {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  background-color: #00ff00;
+  border-radius: 50%;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+  pointer-events: none;
+}
