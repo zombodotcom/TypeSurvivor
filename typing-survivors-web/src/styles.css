@@ -88,3 +88,10 @@ body {
   z-index: 5;
   pointer-events: none;
 }
+
+
+.enemy-boss {
+  transform: scale(1.5);
+  filter: drop-shadow(0 0 3px gold);
+  z-index: 10;
+}
