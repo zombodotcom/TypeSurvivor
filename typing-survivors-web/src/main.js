@@ -400,18 +400,18 @@ async function init() {
 
         for (let i = enemies.length - 1; i >= 0; i--) {
             if (inputText.toLowerCase() === enemies[i].word.toLowerCase()) {
+                let wordLen = enemies[i].word.length;
                 enemies[i].element.remove();
                 enemies.splice(i, 1);
                 inputText = '';
                 inputDiv.textContent = '';
-                score += enemies[i].word.length; // score per letter
+                score += wordLen;
                 updateHUD();
-
                 playEnemyDeathSound();
-
                 break;
             }
         }
+
     });
 }
 
