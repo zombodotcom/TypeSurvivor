@@ -28,19 +28,6 @@ async function loadEmoteList() {
   return await response.json();
 }
 
-async function preloadEmotes(list) {
-  const promises = list.map(name => new Promise((res) => {
-    const img = new Image();
-    img.src = `/emotes/${name}`;
-    img.onload = res;
-    img.onerror = () => {
-      console.warn(`Failed to preload emote: ${name}`);
-      res(); // resolve anyway to avoid blocking
-    };
-  }));
-  await Promise.all(promises);
-}
-
 async function loadSoundList(folder) {
   try {
     const res = await fetch(`/sounds/${folder}/list.json`);
@@ -92,7 +79,7 @@ function createEnemyElement(emoteName) {
 }
 
 function isOverlapping(x, y) {
-  const minDistance = 70; // minimal distance between enemies (pixels)
+  const minDistance = 70; // minimal distance between enemies
   for (const enemy of enemies) {
     const dx = enemy.x - x;
     const dy = enemy.y - y;
@@ -131,20 +118,22 @@ function spawnEnemy(emoteName) {
   container.style.left = `${x}px`;
   container.style.top = `${y}px`;
 
-  // Preload the image and add enemy only after image loads
   const img = container.querySelector('img');
+
+  // Lazy load: append enemy only after image fully loads
   img.onload = () => {
     document.getElementById('game-container').appendChild(container);
     enemies.push({ element: container, x, y, word });
   };
+
   img.onerror = () => {
     console.warn(`Failed to load emote image: ${img.src}`);
-    // Optionally skip spawning this enemy here
+    // Optionally skip spawning this enemy
   };
 }
 
 function moveEnemies(delta) {
-  const collisionRadius = 20; // Adjust this value to tune collision distance
+  const collisionRadius = 42; // Adjust for collision detection
 
   for (let i = enemies.length - 1; i >= 0; i--) {
     const enemy = enemies[i];
@@ -297,7 +286,7 @@ async function init() {
     return;
   }
 
-  await preloadEmotes(emoteList);
+  // Removed preloadEmotes here to speed up initial load
 
   addPlayerDot();
 
