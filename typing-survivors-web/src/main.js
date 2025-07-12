@@ -19,6 +19,8 @@ let bgMusic = null;
 let gameOverSound = null;
 let enemyDeathSounds = [];
 
+const collisionRadius = 32 + 20; // enemy radius + player radius = 52
+
 async function loadEmoteList() {
   const response = await fetch('/emotes/emotes.json');
   return await response.json();
@@ -108,7 +110,7 @@ function moveEnemies(delta) {
     const dy = CENTER.y - enemy.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
 
-    if (dist > 5) {
+    if (dist > collisionRadius) {
       enemy.x += (dx / dist) * ENEMY_SPEED * delta;
       enemy.y += (dy / dist) * ENEMY_SPEED * delta;
       enemy.element.style.left = `${enemy.x}px`;
