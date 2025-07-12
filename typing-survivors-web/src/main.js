@@ -1,5 +1,5 @@
 let CENTER = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
-let ENEMY_SPEED = 80; // pixels per second (adjust as you like)
+let ENEMY_SPEED = 80; // pixels per second
 let enemies = [];
 let emoteList = [];
 let inputText = '';
@@ -10,7 +10,7 @@ let spawnIntervalId = null;
 let isPlaying = false;
 let lastTime = 0;
 
-// Sound file lists
+// Sound variables (assuming you have integrated sound as discussed earlier)
 let bgMusicFiles = [];
 let gameOverSoundFiles = [];
 let enemyDeathSoundFiles = [];
@@ -19,18 +19,33 @@ let bgMusic = null;
 let gameOverSound = null;
 let enemyDeathSounds = [];
 
-const collisionRadius = 32 + 20; // enemy radius + player radius = 52
-
 async function loadEmoteList() {
-  const response = await fetch('/emotes/emotes.json');
+  const response = await fetch('/emotes/emotes.json?v=' + Date.now());
+  if (!response.ok) {
+    alert('❌ Failed to load emotes.json');
+    return [];
+  }
   return await response.json();
+}
+
+async function preloadEmotes(list) {
+  const promises = list.map(name => new Promise((res) => {
+    const img = new Image();
+    img.src = `/emotes/${name}`;
+    img.onload = res;
+    img.onerror = () => {
+      console.warn(`Failed to preload emote: ${name}`);
+      res(); // resolve anyway to avoid blocking
+    };
+  }));
+  await Promise.all(promises);
 }
 
 async function loadSoundList(folder) {
   try {
     const res = await fetch(`/sounds/${folder}/list.json`);
     if (!res.ok) return [];
-    return await res.json(); // expects array of filenames
+    return await res.json();
   } catch {
     return [];
   }
@@ -76,34 +91,61 @@ function createEnemyElement(emoteName) {
   return { container, label, word: label.textContent };
 }
 
+function isOverlapping(x, y) {
+  const minDistance = 70; // minimal distance between enemies (pixels)
+  for (const enemy of enemies) {
+    const dx = enemy.x - x;
+    const dy = enemy.y - y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < minDistance) return true;
+  }
+  return false;
+}
+
 function spawnEnemy(emoteName) {
   const { container, label, word } = createEnemyElement(emoteName);
 
-  let x, y;
   const padding = 100;
-  const side = Math.floor(Math.random() * 4);
-  if (side === 0) {
-    x = Math.random() * window.innerWidth;
-    y = -padding;
-  } else if (side === 1) {
-    x = Math.random() * window.innerWidth;
-    y = window.innerHeight + padding;
-  } else if (side === 2) {
-    x = -padding;
-    y = Math.random() * window.innerHeight;
-  } else {
-    x = window.innerWidth + padding;
-    y = Math.random() * window.innerHeight;
-  }
+  let x, y;
+  let attempts = 0;
+  const maxAttempts = 10;
+
+  do {
+    const side = Math.floor(Math.random() * 4);
+    if (side === 0) {
+      x = Math.random() * window.innerWidth;
+      y = -padding;
+    } else if (side === 1) {
+      x = Math.random() * window.innerWidth;
+      y = window.innerHeight + padding;
+    } else if (side === 2) {
+      x = -padding;
+      y = Math.random() * window.innerHeight;
+    } else {
+      x = window.innerWidth + padding;
+      y = Math.random() * window.innerHeight;
+    }
+    attempts++;
+  } while (isOverlapping(x, y) && attempts < maxAttempts);
 
   container.style.left = `${x}px`;
   container.style.top = `${y}px`;
-  document.getElementById('game-container').appendChild(container);
 
-  enemies.push({ element: container, x, y, word });
+  // Preload the image and add enemy only after image loads
+  const img = container.querySelector('img');
+  img.onload = () => {
+    document.getElementById('game-container').appendChild(container);
+    enemies.push({ element: container, x, y, word });
+  };
+  img.onerror = () => {
+    console.warn(`Failed to load emote image: ${img.src}`);
+    // Optionally skip spawning this enemy here
+  };
 }
 
 function moveEnemies(delta) {
+  const collisionRadius = 20; // Adjust this value to tune collision distance
+
   for (let i = enemies.length - 1; i >= 0; i--) {
     const enemy = enemies[i];
     const dx = CENTER.x - enemy.x;
@@ -116,7 +158,6 @@ function moveEnemies(delta) {
       enemy.element.style.left = `${enemy.x}px`;
       enemy.element.style.top = `${enemy.y}px`;
     } else {
-      // Hit player → game over
       endGame();
       return;
     }
@@ -169,6 +210,7 @@ function hideOverlay() {
 
 function startSpawning() {
   spawnIntervalId = setInterval(() => {
+    if (emoteList.length === 0) return;
     const word = emoteList[Math.floor(Math.random() * emoteList.length)];
     spawnEnemy(word);
   }, 2000);
@@ -254,6 +296,8 @@ async function init() {
     alert('❌ No emotes found in emotes.json!');
     return;
   }
+
+  await preloadEmotes(emoteList);
 
   addPlayerDot();
 
