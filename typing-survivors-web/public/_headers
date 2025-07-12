@@ -1,0 +1,17 @@
+/emotes/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/sounds/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/emotes/emotes.json
+  Cache-Control: public, max-age=86400
+
+/sounds/background/list.json
+  Cache-Control: public, max-age=86400
+
+/sounds/game-over/list.json
+  Cache-Control: public, max-age=86400
+
+/sounds/enemy-death/list.json
+  Cache-Control: public, max-age=86400
