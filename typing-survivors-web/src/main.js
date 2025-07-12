@@ -162,21 +162,32 @@ function isOverlapping(x, y) {
     }
     return false;
 }
+
 function spawnEnemy(emoteName) {
     if (enemies.length >= maxEnemies) return;
     const { container, label, word } = createEnemyElement(emoteName);
+
     const padding = 100;
-    let x, y, attempts = 0, maxAttempts = 10;
+    let x, y, side, attempts = 0, maxAttempts = 10;
     do {
-        const side = Math.floor(Math.random() * 4);
-        if (side === 0) { x = Math.random() * window.innerWidth; y = -padding; }
-        else if (side === 1) { x = Math.random() * window.innerWidth; y = window.innerHeight + padding; }
-        else if (side === 2) { x = -padding; y = Math.random() * window.innerHeight; }
-        else { x = window.innerWidth + padding; y = Math.random() * window.innerHeight; }
+        side = Math.floor(Math.random() * 4);
+        if (side === 0) { x = Math.random() * window.innerWidth; y = -padding; }            // top
+        else if (side === 1) { x = Math.random() * window.innerWidth; y = window.innerHeight + padding; } // bottom
+        else if (side === 2) { x = -padding; y = Math.random() * window.innerHeight; }      // left
+        else { x = window.innerWidth + padding; y = Math.random() * window.innerHeight; }   // right
         attempts++;
     } while (isOverlapping(x, y) && attempts < maxAttempts);
+
+    // --- HERE'S THE MAGIC: ---
+    if (side === 1) { // from bottom
+        label.classList.add('label-above');
+        // move label to before image in DOM
+        container.insertBefore(label, container.firstChild);
+    }
+
     container.style.left = `${x}px`;
     container.style.top = `${y}px`;
+
     const img = container.querySelector('img');
     img.onload = () => {
         document.getElementById('game-container').appendChild(container);
@@ -185,22 +196,48 @@ function spawnEnemy(emoteName) {
     img.onerror = () => { /* optional: handle missing image */ };
 }
 
+
 // ---- Difficulty Logic ----
 function getCurrentTierEmoteList() {
+    // Always pick only from non-empty tiers!
+    const tiers = [
+        { emotes: tier1Emotes, chance: 0 },
+        { emotes: tier2Emotes, chance: 0 },
+        { emotes: tier3Emotes, chance: 0 }
+    ];
+    let roll = Math.random();
     if (score < 100) {
-        return Math.random() < 0.85 ? tier1Emotes : tier2Emotes;
+        tiers[0].chance = 0.85;
+        tiers[1].chance = 0.15;
+        tiers[2].chance = 0;
     } else if (score < 250) {
-        const rand = Math.random();
-        if (rand < 0.6) return tier1Emotes;
-        if (rand < 0.95) return tier2Emotes;
-        return tier3Emotes;
+        tiers[0].chance = 0.6;
+        tiers[1].chance = 0.35;
+        tiers[2].chance = 0.05;
     } else {
-        const rand = Math.random();
-        if (rand < 0.25) return tier1Emotes;
-        if (rand < 0.7) return tier2Emotes;
-        return tier3Emotes;
+        tiers[0].chance = 0.25;
+        tiers[1].chance = 0.45;
+        tiers[2].chance = 0.30;
     }
+
+    // Remove any with 0 chance or empty emotes
+    const active = tiers
+        .map((t, i) => ({...t, idx: i}))
+        .filter(t => t.chance > 0 && t.emotes.length > 0);
+
+    if (!active.length) return [];
+
+    // Recompute total chance and pick
+    let total = active.reduce((s, t) => s + t.chance, 0);
+    let r = Math.random() * total, acc = 0;
+    for (let t of active) {
+        acc += t.chance;
+        if (r < acc) return t.emotes;
+    }
+    // fallback, return the biggest available tier
+    return active[0].emotes;
 }
+
 
 // ---- Spawning/Movement ----
 function startSpawning() {
@@ -360,11 +397,26 @@ function showMainMenu() {
         </div>
         <div class="menu-difficulty" style="margin-top:16px;">
           <h3>Difficulty</h3>
-          <ul style="text-align:left;display:inline-block;">
-            <li>Score &lt; 100: 85% Tier 1, 15% Tier 2, 0% Tier 3</li>
-            <li>Score &lt; 250: 60% Tier 1, 35% Tier 2, 5% Tier 3</li>
-            <li>Score &gt; 250: 25% Tier 1, 45% Tier 2, 30% Tier 3</li>
-          </ul>
+        <<ul style="text-align:left;display:inline-block;">
+        <li>
+            Score &lt; 100:
+            <span style="color:#ffff90;font-weight:bold;">85% Tier 1</span>,
+            <span style="color:#5ad8fa;font-weight:bold;">15% Tier 2</span>,
+            <span style="color:#ffd700;font-weight:bold;">0% Tier 3</span>
+        </li>
+        <li>
+            Score &lt; 250:
+            <span style="color:#ffff90;font-weight:bold;">60% Tier 1</span>,
+            <span style="color:#5ad8fa;font-weight:bold;">35% Tier 2</span>,
+            <span style="color:#ffd700;font-weight:bold;">5% Tier 3</span>
+        </li>
+        <li>
+            Score &gt; 250:
+            <span style="color:#ffff90;font-weight:bold;">25% Tier 1</span>,
+            <span style="color:#5ad8fa;font-weight:bold;">45% Tier 2</span>,
+            <span style="color:#ffd700;font-weight:bold;">30% Tier 3</span>
+        </li>
+        </ul>
         </div>
         <div class="whatsnew-section" style="margin-top:18px;text-align:left;">
           <div style="font-size:15px;color:#ffd700b0;">Version ${VERSION}</div>
