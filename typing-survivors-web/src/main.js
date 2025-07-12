@@ -10,9 +10,51 @@ let spawnIntervalId = null;
 let isPlaying = false;
 let lastTime = 0;
 
+// Sound file lists
+let bgMusicFiles = [];
+let gameOverSoundFiles = [];
+let enemyDeathSoundFiles = [];
+
+let bgMusic = null;
+let gameOverSound = null;
+let enemyDeathSounds = [];
+
 async function loadEmoteList() {
   const response = await fetch('/emotes/emotes.json');
   return await response.json();
+}
+
+async function loadSoundList(folder) {
+  try {
+    const res = await fetch(`/sounds/${folder}/list.json`);
+    if (!res.ok) return [];
+    return await res.json(); // expects array of filenames
+  } catch {
+    return [];
+  }
+}
+
+async function loadSounds() {
+  bgMusicFiles = await loadSoundList('background');
+  gameOverSoundFiles = await loadSoundList('game-over');
+  enemyDeathSoundFiles = await loadSoundList('enemy-death');
+
+  if (enemyDeathSoundFiles.length) {
+    enemyDeathSounds = enemyDeathSoundFiles.map(filename => {
+      const audio = new Audio(`/sounds/enemy-death/${filename}`);
+      audio.volume = 0.5;
+      return audio;
+    });
+  }
+}
+
+function pickRandomAudio(files, folder) {
+  if (!files.length) return null;
+  const file = files[Math.floor(Math.random() * files.length)];
+  const audio = new Audio(`/sounds/${folder}/${file}`);
+  audio.volume = folder === 'background' ? 0.25 : 0.5;
+  if (folder === 'background') audio.loop = true;
+  return audio;
 }
 
 function createEnemyElement(emoteName) {
@@ -134,7 +176,9 @@ function stopSpawning() {
   clearInterval(spawnIntervalId);
 }
 
-function startGame() {
+async function startGame() {
+  await loadSounds();
+
   clearEnemies();
   score = 0;
   inputText = '';
@@ -142,7 +186,25 @@ function startGame() {
   updateHUD();
   hideOverlay();
   isPlaying = true;
-  lastTime = 0; // reset timestamp for smooth animation
+  lastTime = 0;
+
+  if (bgMusic) {
+    bgMusic.pause();
+    bgMusic = null;
+  }
+  if (gameOverSound) {
+    gameOverSound.pause();
+    gameOverSound = null;
+  }
+
+  bgMusic = pickRandomAudio(bgMusicFiles, 'background');
+  gameOverSound = pickRandomAudio(gameOverSoundFiles, 'game-over');
+
+  if (bgMusic) {
+    bgMusic.currentTime = 0;
+    bgMusic.play().catch(() => { /* user interaction needed */ });
+  }
+
   startSpawning();
   gameLoop();
 }
@@ -151,6 +213,15 @@ function endGame() {
   isPlaying = false;
   stopSpawning();
   cancelAnimationFrame(gameLoopId);
+
+  if (bgMusic) {
+    bgMusic.pause();
+  }
+
+  if (gameOverSound) {
+    gameOverSound.currentTime = 0;
+    gameOverSound.play();
+  }
 
   if (score > highScore) {
     highScore = score;
@@ -215,6 +286,13 @@ async function init() {
         inputDiv.textContent = '';
         score++;
         updateHUD();
+
+        if (enemyDeathSounds.length) {
+          const snd = enemyDeathSounds[Math.floor(Math.random() * enemyDeathSounds.length)];
+          snd.currentTime = 0;
+          snd.play();
+        }
+
         break;
       }
     }

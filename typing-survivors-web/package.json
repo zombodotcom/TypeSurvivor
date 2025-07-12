@@ -4,6 +4,7 @@
   "main": "index.js",
   "scripts": {
     "generate:emotes": "node scripts/generateEmotesJson.js",
+    "generate:sounds": "node scripts/generateSoundLists.js",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"
