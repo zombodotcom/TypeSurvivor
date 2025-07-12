@@ -332,6 +332,12 @@ async function showSettingsOverlay() {
         const selected = (bgMusic && bgMusic.src.endsWith(f)) ? 'selected' : '';
         return `<option value="${f}" ${selected}>${f.replace(/\.[^/.]+$/, '')}</option>`;
     }).join('');
+
+    // Find the name of the current song (if any)
+    const curSong = bgMusic && bgMusic.src
+        ? decodeURIComponent(bgMusic.src.split('/').pop())
+        : '(none)';
+
     showOverlay(`
     <div class="overlay-content">
       <h2>Settings</h2>
@@ -350,10 +356,17 @@ async function showSettingsOverlay() {
       <label>
         <span>Background Song:</span>
         <select id="bgm-picker">${musicOptions}</select>
-      </label><br><br>
+        <button id="next-song-btn" title="Play Next Song" style="margin-left:7px;vertical-align:middle;">⏭️ Next</button>
+      </label>
+      <div style="margin-top:7px;font-size:14px;">
+        <b>Current song:</b>
+        <span id="current-song" style="color:#ffd700">${curSong.replace(/\.[^/.]+$/, '')}</span>
+      </div>
+      <br>
       <button id="back-button">Back</button>
     </div>
-  `);
+    `);
+
     document.getElementById('music-vol').oninput = e => {
         musicVolume = parseFloat(e.target.value);
         applyVolumes();
@@ -374,6 +387,28 @@ async function showSettingsOverlay() {
         bgMusic.loop = true;
         bgMusic.volume = musicVolume;
         bgMusic.currentTime = 0;
+        currentBgMusicFile = selectedFile;
+        document.getElementById('current-song').textContent = selectedFile.replace(/\.[^/.]+$/, '');
+        if (isPlaying && !isPaused) bgMusic.play().catch(() => { });
+    };
+    // "Next Song" button: randomly pick a new song (not the same as current)
+    document.getElementById('next-song-btn').onclick = () => {
+        if (bgMusicFiles.length < 2) return;
+        let idx = bgMusicFiles.indexOf(currentBgMusicFile);
+        let nextIdx;
+        do {
+            nextIdx = Math.floor(Math.random() * bgMusicFiles.length);
+        } while (nextIdx === idx);
+        const selectedFile = bgMusicFiles[nextIdx];
+        if (bgMusic) bgMusic.pause();
+        bgMusic = new Audio(`/sounds/background/${selectedFile}`);
+        bgMusic.loop = true;
+        bgMusic.volume = musicVolume;
+        bgMusic.currentTime = 0;
+        currentBgMusicFile = selectedFile;
+        // Update UI
+        document.getElementById('bgm-picker').value = selectedFile;
+        document.getElementById('current-song').textContent = selectedFile.replace(/\.[^/.]+$/, '');
         if (isPlaying && !isPaused) bgMusic.play().catch(() => { });
     };
     document.getElementById('back-button').onclick = () => {
@@ -382,6 +417,7 @@ async function showSettingsOverlay() {
         else showMainMenu();
     };
 }
+
 
 function showMainMenu() {
     isPlaying = false;
