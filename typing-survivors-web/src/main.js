@@ -45,8 +45,8 @@ function groupEmotesByTier(list) {
 
     for (const name of list) {
         const word = name.replace(/\.[^/.]+$/, '');
-        if (word.length <= 4) tier1Emotes.push(name);
-        else if (word.length <= 7) tier2Emotes.push(name);
+        if (word.length <= 6) tier1Emotes.push(name);
+        else if (word.length <= 10) tier2Emotes.push(name);
         else tier3Emotes.push(name);
     }
 }
