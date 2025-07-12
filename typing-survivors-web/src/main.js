@@ -287,9 +287,10 @@ function showPauseOverlay() {
     document.getElementById('settings-button').onclick = showSettingsOverlay;
     document.getElementById('mainmenu-button').onclick = showMainMenu;
 }
-function showSettingsOverlay() {
+async function showSettingsOverlay() {
     settingsOpen = true;
     hideOverlay();
+    await loadSounds(); // Always reload the current list
     const musicOptions = bgMusicFiles.map(f => {
         const selected = (bgMusic && bgMusic.src.endsWith(f)) ? 'selected' : '';
         return `<option value="${f}" ${selected}>${f.replace(/\.[^/.]+$/, '')}</option>`;
