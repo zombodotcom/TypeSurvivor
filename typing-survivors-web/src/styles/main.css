@@ -1,0 +1,526 @@
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #1a102a;
+}
+
+#game-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+#overlay-root {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  background: none; /* No filled overlay for pause menu */
+}
+
+/* --- Pause Menu & Settings Panel Overhaul --- */
+.pause-card {
+  background: rgba(34, 26, 45, 0.2);
+  border-radius: 24px;
+  box-shadow: 0 0 32px 8px #a259ff44;
+  padding: 2.5rem 2.5rem 2rem 2.5rem;
+  min-width: 340px;
+  max-width: 95vw;
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  font-size: 1.08rem;
+  border: 2px solid #a259ff33;
+  box-sizing: border-box;
+  color: #f5f5fa;
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+}
+.pause-title {
+  color: #fff;
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 2rem;
+  text-align: center;
+  text-shadow: 0 2px 8px #0008;
+}
+.settings-section {
+  width: 100%;
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  font-size: 1.08rem;
+  background: none;
+}
+.setting-row label {
+  color: #f5f5fa;
+  font-size: 1.08rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+/* Modern toggle switch styles */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 56px;
+  height: 28px;
+  margin-left: 12px;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.switch .slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #3a2e5a;
+  border-radius: 14px;
+  transition: background 0.2s;
+}
+.switch input:checked + .slider {
+  background-color: #a259ff;
+}
+.switch .slider:before {
+  position: absolute;
+  content: "";
+  height: 22px; width: 22px;
+  left: 3px; top: 3px;
+  background-color: #fff;
+  border-radius: 50%;
+  transition: left 0.2s;
+  box-shadow: 0 2px 8px #0002;
+}
+.switch input:checked + .slider:before {
+  left: 31px;
+}
+.toggle-label {
+  margin-left: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #a259ff;
+  vertical-align: middle;
+  letter-spacing: 0.03em;
+  text-shadow: 0 1px 4px #0006;
+}
+/* Sliders */
+input[type="range"].slider {
+  width: 140px;
+  accent-color: #a259ff;
+  cursor: pointer;
+  background: transparent;
+  height: 4px;
+  border-radius: 2px;
+  margin-left: 10px;
+}
+input[type="range"].slider::-webkit-slider-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #a259ff;
+  box-shadow: 0 2px 8px #a259ff44;
+  transition: background 0.2s;
+}
+input[type="range"].slider:focus::-webkit-slider-thumb {
+  background: #a259ff;
+  border: 2px solid #fff;
+}
+input[type="range"].slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #a259ff;
+  box-shadow: 0 2px 8px #a259ff44;
+  transition: background 0.2s;
+}
+input[type="range"].slider:focus::-moz-range-thumb {
+  background: #a259ff;
+  border: 2px solid #fff;
+}
+input[type="range"].slider::-ms-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #a259ff;
+  box-shadow: 0 2px 8px #a259ff44;
+  transition: background 0.2s;
+}
+input[type="range"].slider:focus::-ms-thumb {
+  background: #a259ff;
+  border: 2px solid #fff;
+}
+input[type="range"].slider::-webkit-slider-runnable-track {
+  height: 4px;
+  background: #a259ff44;
+  border-radius: 2px;
+}
+input[type="range"].slider::-ms-fill-lower {
+  background: #a259ff44;
+}
+input[type="range"].slider::-ms-fill-upper {
+  background: #a259ff44;
+}
+input[type="range"].slider:focus {
+  outline: none;
+}
+/* Resume Button */
+.resume-btn {
+  background: linear-gradient(90deg, #a259ff 0%, #6d3cff 100%);
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 24px;
+  padding: 0.8rem 2.5rem;
+  margin: 0 auto 2rem auto;
+  display: block;
+  box-shadow: 0 2px 12px #a259ff44;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.resume-btn:hover {
+  background: linear-gradient(90deg, #b47aff 0%, #7d4cff 100%);
+  box-shadow: 0 4px 24px #a259ff66;
+}
+
+/* --- Slider Track: Make it visually distinct --- */
+input[type="range"].slider {
+  width: 140px;
+  accent-color: #a259ff;
+  cursor: pointer;
+  background: transparent;
+  height: 4px;
+  border-radius: 2px;
+  margin-left: 10px;
+  /* Add a visible track for all browsers */
+  box-shadow: none;
+}
+input[type="range"].slider::-webkit-slider-runnable-track {
+  height: 6px;
+  background: #a259ff44;
+  border-radius: 3px;
+}
+input[type="range"].slider::-moz-range-track {
+  height: 6px;
+  background: #a259ff44;
+  border-radius: 3px;
+}
+input[type="range"].slider::-ms-fill-lower,
+input[type="range"].slider::-ms-fill-upper {
+  background: #a259ff44;
+  border-radius: 3px;
+}
+
+/* --- Main Menu Overlay Modernization --- */
+.overlay-content {
+  background: rgba(34, 26, 45, 0.2);
+  border-radius: 24px;
+  box-shadow: 0 0 32px 8px #a259ff44;
+  padding: 2.5rem 2.5rem 2rem 2.5rem;
+  min-width: 340px;
+  max-width: 95vw;
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  font-size: 1.08rem;
+  border: 2px solid #a259ff33;
+  box-sizing: border-box;
+  color: #f5f5fa;
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+}
+.overlay-content h1 {
+  color: #fff;
+  font-size: 2.2rem;
+  font-weight: 900;
+  margin-bottom: 2.2rem;
+  text-align: center;
+  text-shadow: 0 2px 8px #0008;
+  letter-spacing: 0.03em;
+}
+.game-mode-select {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 1.2rem;
+}
+.game-mode-select label {
+  color: #f5f5fa;
+  font-size: 1.08rem;
+  font-weight: 500;
+  margin-right: 1.2rem;
+}
+#mode-description {
+  font-size: 1rem;
+  color: #a259ff;
+  margin-bottom: 1.2rem;
+  font-weight: 600;
+  min-height: 2.5em; /* Reserve space for longest description */
+  display: flex;
+  align-items: center;
+}
+.ui-toggles label {
+  color: #f5f5fa;
+  font-size: 1.08rem;
+  font-weight: 500;
+}
+#start-btn {
+  background: linear-gradient(90deg, #a259ff 0%, #6d3cff 100%);
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 24px;
+  padding: 0.8rem 2.5rem;
+  margin: 0 auto 2rem auto;
+  display: block;
+  box-shadow: 0 2px 12px #a259ff44;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+#start-btn:hover {
+  background: linear-gradient(90deg, #b47aff 0%, #7d4cff 100%);
+  box-shadow: 0 4px 24px #a259ff66;
+}
+
+/* --- Main Menu Panel: Fixed width and reserved description space --- */
+.overlay-content {
+  background: rgba(34, 26, 45, 0.85);
+  backdrop-filter: blur(6px);
+  border-radius: 24px;
+  box-shadow: 0 0 32px 8px #a259ff44;
+  padding: 2.5rem 2.5rem 2rem 2.5rem;
+  width: 400px;
+  min-width: 340px;
+  max-width: 95vw;
+  min-height: 340px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  font-size: 1.08rem;
+  border: 2px solid #a259ff33;
+  box-sizing: border-box;
+  color: #f5f5fa;
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+}
+body.overlay-visible {
+  overflow: hidden !important;
+} 
+
+/* --- HUD Styles --- */
+#hud-root {
+  font-family: 'Arial Rounded MT Bold', Arial, sans-serif;
+  font-size: 21px;
+  color: #ffff90;
+  background: rgba(30,30,30,0.2);
+  border-radius: 10px;
+  padding: 5px 16px;
+  text-shadow: 0 2px 4px #2228, 0 0 10px #111c;
+}
+.hud-score, .hud-combo, .hud-high-score {
+  margin: 0 12px;
+}
+
+/* --- Enemy Display Styles --- */
+#enemy-root {
+  font-family: 'Consolas', 'Menlo', 'Monaco', monospace;
+  font-size: 2.2em;
+  color: #a78bfa;
+  letter-spacing: 2px;
+  /* Remove default text-shadow so inline text-shadow is visible */
+  text-shadow: none;
+}
+.enemy-label {
+  background: none !important;
+  color: #fff !important;
+}
+.enemy-word {
+  background: rgba(44, 24, 74, 0.98);
+  border-radius: 12px;
+  padding: 18px 32px;
+  margin: 0 8px;
+  border: 2px solid #a78bfa33;
+  box-shadow: 0 0 16px #7c3aed33;
+  display: inline-block;
+}
+
+/* --- Typing Input Styles (already mostly inline, but for fallback) --- */
+#typed-input {
+  outline: none;
+  border: 2px solid #ffd70040;
+  background: rgba(16,24,40,0.77);
+  color: #ffff00;
+  font-size: 24px;
+  border-radius: 10px;
+  box-shadow: 0 2px 18px #0007;
+  padding: 9px 18px;
+  text-align: center;
+  width: max-content;
+  max-width: 92vw;
+  white-space: nowrap;
+  overflow-x: auto;
+  z-index: 100;
+} 
+
+/* --- Enemy Tier Styles --- */
+.enemy-tier1 .enemy-emote {
+  width: 60px;
+  height: 60px;
+  box-shadow: 0 0 16px 2px #7c3aedcc;
+}
+.enemy-tier2 .enemy-emote {
+  width: 80px;
+  height: 80px;
+  box-shadow: 0 0 24px 4px #ff9800cc;
+}
+.enemy-boss .enemy-emote {
+  width: 108px;
+  height: 108px;
+  box-shadow: 0 0 32px 8px #ffd700cc;
+} 
+
+/* --- Modern Radio Buttons --- */
+.game-mode-select input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: #2d1a4a;
+  border: 2px solid #a259ff88;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: inline-block;
+  position: relative;
+  margin-right: 8px;
+  vertical-align: middle;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+  cursor: pointer;
+  box-shadow: 0 1px 4px #0002;
+}
+.game-mode-select input[type="radio"]:checked {
+  border: 6px solid #a259ff;
+  background-color: #fff;
+  box-shadow: 0 2px 8px #a259ff44;
+}
+.game-mode-select input[type="radio"]:focus {
+  border-color: #a259ff;
+  box-shadow: 0 0 0 2px #a259ff44;
+}
+.game-mode-select label {
+  color: #f5f5fa;
+  font-size: 1.08rem;
+  font-weight: 500;
+  margin-right: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+/* --- General Polish --- */
+.ui-toggles label {
+  color: #f5f5fa;
+  font-size: 1.08rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+} 
+
+.test-btn {
+  background: linear-gradient(90deg, #a259ff 0%, #6d3cff 100%);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 16px;
+  padding: 0.4em 1.2em;
+  margin-left: 0.5em;
+  box-shadow: 0 1px 4px #a259ff33;
+  cursor: pointer;
+  transition: background 0.18s, box-shadow 0.18s;
+  outline: none;
+  vertical-align: middle;
+}
+.test-btn:hover {
+  background: linear-gradient(90deg, #b47aff 0%, #7d4cff 100%);
+  box-shadow: 0 2px 8px #a259ff55;
+} 
+
+.gameover-btn {
+  display: inline-block;
+  min-width: 140px;
+  padding: 0.7em 2.2em;
+  font-size: 1.18rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 24px;
+  margin: 0.5em 0.7em 0.5em 0;
+  box-shadow: 0 2px 12px #a259ff33;
+  cursor: pointer;
+  transition: background 0.18s, box-shadow 0.18s, color 0.18s;
+}
+.gameover-btn-restart {
+  background: linear-gradient(90deg, #a259ff 0%, #6d3cff 100%);
+  color: #fff;
+}
+.gameover-btn-restart:hover {
+  background: linear-gradient(90deg, #b47aff 0%, #7d4cff 100%);
+  box-shadow: 0 4px 24px #a259ff66;
+}
+.gameover-btn-main {
+  background: #fff;
+  color: #a259ff;
+  border: 2px solid #a259ff;
+}
+.gameover-btn-main:hover {
+  background: #f3eaff;
+  color: #7d4cff;
+  border-color: #7d4cff;
+  box-shadow: 0 4px 24px #a259ff33;
+} 
+
+.glow-rainbow {
+  position: relative;
+}
+.glow-rainbow::before {
+  content: '';
+  position: absolute;
+  top: -10px; left: -10px; right: -10px; bottom: -10px;
+  border-radius: 50%;
+  z-index: 0;
+  background: conic-gradient(
+    #ff0080, #ff8c00, #ff0, #00ff8c, #00cfff, #3300ff, #ff0080
+  );
+  filter: blur(2px) brightness(1.2);
+  animation: rainbow-spin 2.5s linear infinite;
+}
+@keyframes rainbow-spin {
+  100% { transform: rotate(360deg); }
+}
+#player-avatar img {
+  position: relative;
+  z-index: 1;
+} 
